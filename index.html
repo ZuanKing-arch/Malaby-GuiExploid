@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Malaby Exploid v14 — Modern Console</title>
+<style>
+/* ========================================= */
+/* 1. MODERN & CLEAN DESIGN CSS */
+/* ========================================= */
+:root{
+  --bg1:#0b0226; --bg2:#020019;
+  --accent:#7c4dff; --accent2:#b58bff;
+  --muted:#b9cde8; --glass:rgba(255,255,255,0.04);
+  --ok:#55e6a1; --warn:#ffd86b; --danger:#ff6b7a;
+  --card: rgba(255,255,255,0.02);
+  --accent-name: "Ungu";
+  /* NEW MODERN COLORS */
+  --login-bg: rgba(0,0,0,0.9);
+  --login-card-border: 1px solid rgba(124, 77, 255, 0.2);
+  --login-card-shadow: 0 0 40px rgba(124, 77, 255, 0.15);
+  --input-bg: rgba(0, 0, 0, 0.3);
+}
+/* RESET */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,system-ui,-apple-system;background:#060016;color:#eaf0ff;overflow:hidden}
+
+/* Animated gradient background (slow) */
+.bg-wrap{
+  position:fixed;inset:0;z-index:0;overflow:hidden;background:linear-gradient(120deg,var(--bg1),var(--bg2));
+}
+.gradient {
+  position:absolute;inset:-25%;;background:linear-gradient(60deg,#1f0533 0%, #04123a 40%, #001226 70%, #020019 100%);
+  filter:blur(30px) saturate(1.1);
+  animation:moveGradient 18s linear infinite;
+  opacity:0.9;
+}
+@keyframes moveGradient{
+  0%{transform:translate3d(-8%, -4%, 0) rotate(0deg)}
+  50%{transform:translate3d(6%, 10%, 0) rotate(2deg)}
+  100%{transform:translate3d(-8%, -4%, 0) rotate(0deg)}
+}
+
+/* subtle bokeh / nebula overlay */
+.nebula{
+  position:absolute; inset:0; background:
+   radial-gradient(600px 300px at 10% 20%, rgba(139,77,255,0.06), transparent 10%),
+   radial-gradient(500px 200px at 80% 75%, rgba(51,215,255,0.03), transparent 10%);
+  mix-blend-mode:screen; pointer-events:none;
+}
+
+/* star canvas sits above gradient to avoid z-index issues */
+canvas#starCanvas{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+/* APP FRAME */
+.app{position:relative;z-index:5;display:flex;height:100vh;width:100vw;padding:28px;gap:18px;align-items:stretch; display:none}
+
+/* LEFT INFO COLUMN (Scrollable) */
+.left{
+  width:300px;min-width:220px;max-width:340px;display:flex;flex-direction:column;gap:12px;z-index:5;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+/* Scrollbar style (optional, for modern look) */
+.left::-webkit-scrollbar { width: 6px; }
+.left::-webkit-scrollbar-thumb { background-color: rgba(124, 77, 255, 0.4); border-radius: 6px; }
+.left::-webkit-scrollbar-track { background-color: transparent; }
+
+.brand{
+  padding:14px;border-radius:10px;
+  background:var(--card);backdrop-filter:blur(6px);
+  box-shadow:0 8px 30px rgba(6,4,24,0.4);
+  border-left: 4px solid var(--accent);
+  font-weight:900;color:var(--accent);
+}
+.info{
+  padding:12px;border-radius:10px;
+  background:var(--card);backdrop-filter:blur(6px);
+  border: 1px solid rgba(255,255,255,0.06);
+  font-size:13px;color:var(--muted)
+}
+.info .muted{color:var(--muted);font-size:13px}
+
+/* MAIN AREA */
+.main{flex:1;display:flex;flex-direction:column;gap:12px;z-index:5}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.title{font-weight:900;font-size:20px;color:var(--accent)}
+.controls{display:flex;align-items:center;gap:10px}
+
+/* STATUS */
+.status-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.status-pill{padding:8px 12px;border-radius:999px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--muted);font-weight:700}
+
+/* SEARCH BAR IN CENTER */
+.search-bar-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+#searchInput{
+  height:40px; width:480px;max-width:80vw;padding:0 12px;
+  border-radius:8px;border:none;background:var(--input-bg);color:inherit;outline:none;
+  transition: box-shadow 0.2s;
+  text-align: center;
+}
+#searchInput:focus{ box-shadow: 0 0 0 2px var(--accent); }
+
+/* PANEL */
+.panel{
+  flex:1;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:10px;
+  padding:18px;overflow:auto;box-shadow:0 10px 40px rgba(6,4,24,0.3);
+  backdrop-filter:blur(8px);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.tabs{display:flex;gap:8px;margin-bottom:10px}
+.tab{
+  padding:8px 12px;border-radius:999px;background:transparent;border:1px solid rgba(255,255,255,0.03);cursor:pointer;font-weight:800;color:var(--muted)
+}
+.tab.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#071022;box-shadow:0 6px 12px rgba(124,77,255,0.1)}
+
+/* FEATURES GRID 3 columns */
+.category-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.category-title{font-weight:900;color:var(--accent)}
+.controls-inline{display:flex;gap:8px;align-items:center}
+
+/* grid */
+.features-grid{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:12px}
+@media (max-width:1100px){ .features-grid{grid-template-columns:repeat(2,minmax(220px,1fr))} #searchInput{width:280px} .left{display:none} }
+@media (max-width:720px){ .features-grid{grid-template-columns:repeat(1,minmax(200px,1fr));} #searchInput{width:160px} }
+
+/* feature card: left text, right controls (aligned right) */
+.feature-card{
+  display:flex;align-items:center;justify-content:space-between;padding:12px;
+  border-radius:8px;
+  background:rgba(255,255,255,0.01);
+  transition:transform .14s, box-shadow .14s; 
+  border:1px solid rgba(255,255,255,0.02);
+}
+.feature-card:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(124,77,255,0.06)}
+.feature-left{display:flex;flex-direction:column;gap:6px}
+.feature-title{font-weight:800}
+.feature-desc{font-size:13px;color:var(--muted)}
+
+/* Activation Button Styles */
+.feature-controls{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-mini{
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 80px;
+  transition: all 0.1s ease;
+}
+.btn-mini.activate-btn{
+  background: linear-gradient(90deg,var(--accent),var(--accent2));
+  color:#071022;
+}
+/* Style untuk tombol Active saat fitur SUDAH aktif */
+.btn-mini.activate-btn:disabled{
+  opacity: 1; 
+  pointer-events: none;
+  background: var(--ok);
+  color: #071022;
+  box-shadow: 0 0 10px rgba(85, 230, 161, 0.4);
+}
+/* Style untuk tombol Non-active saat fitur SUDAH non-aktif */
+.btn-mini.deactivate-btn:disabled {
+    opacity: 1;
+    pointer-events: none;
+    background: var(--input-bg);
+    color: var(--muted);
+    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+/* log */
+.log{margin-top:14px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));padding:12px;border-radius:8px;max-height:180px;overflow:auto;font-family:monospace;color:#cfe6ff}
+
+/* notif (right top) */
+.notif{
+  position:fixed;right:26px;top:26px;z-index:120;width:340px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));padding:12px;border-radius:12px;box-shadow:0 16px 60px rgba(6,4,24,0.6);display:none
+}
+.notif .title{font-weight:900;color:var(--accent)}
+.notif .desc{color:var(--muted);margin-top:8px}
+.notif .barwrap{height:8px;background:rgba(255,255,255,0.04);border-radius:8px;margin-top:12px;overflow:hidden}
+.notif .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .06s linear}
+
+/* Daily Update Report (DIPERBAIKI AGAR TIDAK MENABRAK TEMA) - REMOVED */
+
+/* LOGIN OVERLAY */
+.login-overlay{
+  position:fixed;inset:0;z-index:220;display:flex;align-items:center;justify-content:center;
+  background:var(--login-bg);
+  backdrop-filter:blur(6px);
+}
+.login-card{
+  width:820px;
+  max-width:96%;border-radius:10px;padding:30px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  box-shadow:0 40px 100px rgba(6,4,24,0.7), var(--login-card-shadow);
+  border: var(--login-card-border);
+}
+.login-title-wrap h1 {
+  font-weight:900;font-size:26px;color:var(--accent);
+  text-shadow:0 0 12px rgba(124, 77, 255, 0.6);
+  position:relative;
+}
+
+.login-tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab.small{padding:6px 10px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,0.03);font-weight:700;color:var(--muted)}
+.tab.small.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#071022}
+
+/* login rows */
+.login-rows{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.login-rows input{
+  height:40px; padding:0 14px; border-radius:8px;
+  border:none; background:var(--input-bg);color:inherit;outline:none;
+  width:300px;
+  transition: box-shadow 0.2s;
+}
+.login-rows input:focus{ box-shadow: 0 0 0 2px var(--accent); }
+.login-actions{display:flex;gap:10px;justify-content:center;margin-top:20px}
+
+/* Buttons (Dibuat Seragam) */
+.btn{
+  height:40px; padding:0 18px; border-radius:8px; border:none;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  color:#071022;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(124,77,255,0.1);
+  transition: transform 0.1s;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn.secondary{
+  background:transparent;color:var(--muted);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow: none;
+}
+
+.login-progress{height:8px;background:rgba(255,255,255,0.03);border-radius:8px;margin-top:14px;overflow:hidden}
+.login-progress .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .06s linear}
+
+/* Preset Select Style (Diperbagus) */
+.preset-select-wrapper {
+    position: relative;
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    background: var(--input-bg);
+}
+.preset-select{
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  height:40px; padding:0 30px 0 10px;
+  border-radius:8px; border:none;
+  background:transparent;
+  color:inherit;
+  width:100%;
+  cursor: pointer;
+  font-weight: 600;
+}
+/* Custom Arrow for select */
+.preset-select-wrapper::after {
+    content: '▼';
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 10px;
+    pointer-events: none;
+}
+
+
+/* theme swatches */
+.theme-swatch{width:28px;height:28px;border-radius:8px;cursor:pointer;border:2px solid rgba(255,255,255,0.03)}
+.kv{font-size:13px;color:var(--muted)}
+
+/* reduce outline */
+:focus{outline:none}
+</style>
+</head>
+<body>
+<div class="bg-wrap"><div class="gradient"></div><div class="nebula"></div></div>
+<canvas id="starCanvas"></canvas>
+
+<div class="app" role="application" id="appMain">
+  <div class="left">
+    <div class="brand">Malaby <span style="color:var(--muted);font-weight:700">Exploid</span></div>
+
+    <div class="info">
+      <div style="font-weight:800">Roblox Elite — v14</div>
+      <div class="muted" style="margin-top:6px">Modern Console Edition</div>
+    </div>
+    
+    <div class="info">
+      <div style="font-weight:800; margin-bottom: 8px;">System Monitor</div>
+      <div class="kv">CPU: <span id="cpuUsage">2%</span></div>
+      <div class="kv">GPU: <span id="gpuUsage">5%</span></div>
+      <div class="kv">Memory: <span id="memUsage">120MB</span></div>
+      <div class="kv">Temperature: <span id="temp">45°C</span></div>
+      <div class="login-progress" style="margin-top: 8px;"><div id="systemLoadBar" class="bar"></div></div>
+    </div>
+
+    <div class="info" id="userInfoCard" style="display:none">
+      <div style="font-weight:800">Status User</div>
+      <div id="whoInfo" class="muted" style="margin-top:6px">User: Unknown • Mode: Freemium</div>
+      <button id="logoutBtn" class="btn secondary" style="margin-top:10px; width:100%">Logout</button>
+    </div>
+
+    <div class="info">
+      <div style="font-weight:800; margin-bottom: 8px;">Presets</div>
+      <div class="preset-select-wrapper" style="margin-bottom: 8px;">
+        <select id="presetSelect" class="preset-select">
+          <option value="default">Default (Movement + Visual)</option>
+          <option value="combat">Combat (Aimbot pack)</option>
+          <option value="visual">Visual (ESP pack)</option>
+          <option value="farm">Farm (AutoFarm + TeleportHub)</option>
+        </select>
+      </div>
+      <button id="enablePresetBtn" class="btn" style="width:100%; margin-bottom: 8px;">Enable Selected Preset</button>
+      <button id="enableAllBtn" class="btn secondary" style="width:100%;">Enable All Preset</button>
+    </div>
+
+    <div class="info">
+      <div style="font-weight:800">Theme</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+        <div class="theme-swatch" data-color="#7c4dff" style="background:#7c4dff"></div>
+        <div class="theme-swatch" data-color="#33d7ff" style="background:#33d7ff"></div>
+        <div class="theme-swatch" data-color="#ff7ab6" style="background:#ff7ab6"></div>
+        <div class="theme-swatch" data-color="#39d98a" style="background:#39d98a"></div>
+        <input type="color" id="customColorPicker" value="#7c4dff" title="Pilih Warna Kustom" style="height:28px; width:40px; border:none; background:none; padding:0; cursor:pointer; border-radius:8px; overflow:hidden;"/>
+      </div>
+      <div class="kv" style="margin-top: 8px;">Warna Aktif: <span id="currentThemeName">Ungu</span></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <div class="title">Malaby Exploid — Roblox</div>
+      <div class="controls"></div> 
+    </div>
+
+    <div class="status-row">
+      <div id="statusIndicator" class="status-pill">Idle</div>
+      <div style="margin-left:auto;color:var(--muted)">v14.0</div>
+    </div>
+
+    <div class="search-bar-wrap">
+      <input id="searchInput" placeholder="Cari cheat..." />
+    </div>
+
+    <section class="panel" id="panelMain">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="tabs" id="tabsRow">
+          <div class="tab active" data-tab="Movement">Movement</div>
+          <div class="tab" data-tab="Combat">Combat</div>
+          <div class="tab" data-tab="Visual">Visual & Utility</div>
+        </div>
+        <div class="controls-inline">
+          <div class="preset-select-wrapper" style="width: 140px;">
+              <select id="viewMode" class="preset-select" style="height:32px; padding:0 24px 0 8px; font-size:13px; font-weight:600">
+                <option value="all">Show All</option>
+                <option value="tab">Show Current Tab</option>
+              </select>
+          </div>
+          <button id="enableAllTop" class="btn" style="height:32px; padding:0 12px; font-size:13px">Enable All</button>
+        </div>
+      </div>
+
+      <div id="categoriesContainer"></div>
+      
+      <div class="bottom-area" style="display:flex; gap:18px; margin-top: 20px; align-items: flex-start;">
+          <div style="flex: 1;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div class="category-title" style="font-size:16px;">Activity Log</div>
+                  <button id="clearLogBtn" class="btn secondary" style="height:30px; padding:0 10px; font-size:13px">Clear Log</button>
+              </div>
+              <div class="log" id="activityLog" style="margin-top:8px;"></div> 
+          </div>
+
+          <div style="width: 300px; min-width: 250px;">
+              <div class="category-title" style="font-size:16px; margin-bottom: 8px; color:var(--danger)">Bug Report (WA)</div>
+              <div class="info" style="padding:12px; background:linear-gradient(180deg, rgba(255,107,122,0.02), rgba(255,107,122,0.01)); border: 1px solid rgba(255,107,122,0.2);">
+                  <input id="reportName" placeholder="Nama Anda" style="width:100%; height:30px; padding:0 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:var(--input-bg); color:inherit; outline:none; margin-bottom:8px;" />
+                  <input id="reportMode" placeholder="Mode (Freemium/Premium)" style="width:100%; height:30px; padding:0 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:var(--input-bg); color:inherit; outline:none; margin-bottom:8px;" />
+                  <textarea id="reportProblem" placeholder="Jelaskan masalah Anda..." style="width:100%; min-height:60px; padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:var(--input-bg); color:inherit; outline:none; resize:vertical; margin-bottom:12px; font-family:inherit; font-size:13px;"></textarea>
+                  <button id="sendReportBtn" class="btn" style="width:100%; background:linear-gradient(90deg, #39d98a, #55e6a1); color:#071022; box-shadow:0 6px 15px rgba(57, 217, 138, 0.1);">Kirim Laporan</button>
+              </div>
+          </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="logoutModal" class="login-overlay" style="display:none; z-index:250;">
+  <div class="login-card" style="width:400px; max-width:90%; text-align:center; padding:20px;">
+    <div class="login-title-wrap">
+      <h1 style="font-weight:900; font-size:24px; color:var(--danger)">Exit Console?</h1>
+    </div>
+    <div class="kv" style="margin-top:10px; font-size:14px; color:var(--muted)">
+      Anda yakin ingin keluar? Status aktif dan sesi akan direset.
+    </div>
+    <div class="login-actions" style="margin-top:20px">
+      <button id="confirmLogoutBtn" class="btn" style="background:var(--danger); color:#fff; box-shadow:0 8px 20px rgba(255,107,122,0.1);">Confirm Exit</button>
+      <button id="cancelLogoutBtn" class="btn secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="adminKeyOverlay" class="login-overlay" style="display:none; z-index:230;">
+  <div class="login-card" style="width:400px; max-width:96%; padding:20px; text-align:center;">
+    <div style="display:flex; justify-content:flex-end;">
+      <button id="closeAdminKeyBtn" style="background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; padding:0; line-height:1; font-weight:300;">&times;</button>
+    </div>
+    <div class="login-title-wrap">
+      <h1 style="font-size:22px; margin-top:-10px; margin-bottom:15px;">Akses Demo</h1>
+    </div>
+    <div class="kv" style="color:var(--accent2); margin-bottom:15px; font-weight:600;">
+      Mode Demo hanya dapat diakses oleh Admin.<br/>Masukkan Kunci Akses Admin:
+    </div>
+    <input id="adminKeyInput" placeholder="Kunci Admin" type="password" style="height:40px; padding:0 14px; border-radius:8px; border:none; background:var(--input-bg);color:inherit;outline:none; width:90%; margin-bottom:15px;" />
+    <button id="submitAdminKeyBtn" class="btn" style="width:90%;">Akses</button>
+    <div id="adminKeyMsg" class="kv" style="margin-top:10px;color:var(--muted); text-align:center"></div>
+  </div>
+</div>
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-card" role="dialog" aria-label="Login">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="login-title-wrap">
+        <h1>Malaby Exploid — Console Login</h1>
+      </div>
+      <div class="login-tabs">
+        <div id="tabFree" class="tab small active">Freemium</div>
+        <div id="tabPremium" class="tab small">Premium</div>
+      </div>
+    </div>
+
+    <div class="login-rows">
+      <input id="loginUser" placeholder="Nama Asli (Freemium) atau Username (Premium)" />
+      <input id="loginPass" placeholder="Password" type="password" />
+    </div>
+
+    <div class="login-actions">
+      <button id="loginBtn" class="btn">Decrypt & Login</button>
+      <button id="demoBtn" class="btn secondary">View Demo</button>
+    </div>
+
+    <div class="login-progress"><div id="loginBar" class="bar"></div></div>
+    <div id="loginMsg" class="kv" style="margin-top:10px;color:var(--muted); text-align:center">Masukkan Nama & Password (bebas) untuk mode Freemium.</div>
+  </div>
+</div>
+
+<div id="notif" class="notif" aria-hidden="true">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div class="title" id="notifTitle">Activating...</div>
+    <button id="notifCloseBtn" style="background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; padding:0 4px; line-height:1; font-weight:100;">&times;</button>
+  </div>
+  <div class="desc" id="notifDesc">Please wait</div>
+  <div class="barwrap"><div id="notifBar" class="bar"></div></div>
+</div>
+
+<script>
+/* ========================================= */
+/* 3. JAVASCRIPT LOGIC */
+/* ========================================= */
+/* ========== Star canvas (twinkling small stars) ========== */
+const canvas = document.getElementById('starCanvas');
+const ctx = canvas.getContext('2d');
+function fit(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+fit(); window.addEventListener('resize', fit);
+
+const STAR_COUNT = Math.max(120, Math.round((innerWidth*innerHeight)/120000));
+const stars = [];
+for(let i=0;i<STAR_COUNT;i++){
+  stars.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    r: Math.random()*1.4 + 0.3,
+    s: Math.random()*0.5 + 0.02,
+    p: Math.random()*Math.PI*2,
+    dx: Math.random()*0.4 - 0.2
+  });
+}
+let tt = 0;
+function drawStars(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  tt += 0.01;
+  for(const s of stars){
+    s.y += s.s;
+    s.x += Math.sin(tt + s.p) * 0.02 + s.dx;
+    if(s.y > canvas.height + 6){ s.y = -6; s.x = Math.random()*canvas.width; }
+    const a = 0.3 + 0.7 * Math.abs(Math.sin((tt*2 + s.p) * 0.6));
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(255,255,255,${Math.max(0, a*0.9)})`;
+    ctx.shadowBlur = s.r*5;
+    ctx.shadowColor = 'rgba(180,150,255,0.5)';
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+/* ========== WebAudio helper (tones) ========== */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function tone(freq=880, dur=0.06){
+  try{
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.value = 0.0001;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.12, audioCtx.currentTime + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    setTimeout(()=>o.stop(), dur*1000 + 30);
+  }catch(e){}
+}
+
+/* ========== Data: Features, Presets & Updates ========== */
+const FEATURES = [
+  // Movement
+  {id:'fly', title:'Fly', desc:'Terbang bebas (visual)', delay:2200, category:'Movement'},
+  {id:'infjump', title:'Infinite Jump', desc:'Loncat terus (visual)', delay:1400, category:'Movement'},
+  {id:'walkspeed', title:'WalkSpeed', desc:'Atur kecepatan jalan (visual)', delay:1300, category:'Movement'},
+  {id:'jumppower', title:'JumpPower', desc:'Tingkatkan lompatan (visual)', delay:1300, category:'Movement'},
+  {id:'teleport2player', title:'Teleport to Player', desc:'Teleport ke pemain (visual)', delay:1800, category:'Movement'},
+  {id:'noclip', title:'NoClip', desc:'Lewati objek (visual)', delay:1900, category:'Movement'},
+  {id:'gravity', title:'Gravity Control', desc:'Ubah gravitasi (visual)', delay:1600, category:'Movement'},
+
+  // Combat
+  {id:'aimbot', title:'Aimbot', desc:'Bantuan bidik (visual)', delay:2000, category:'Combat'},
+  {id:'hitbox', title:'Hitbox Expander', desc:'Perbesar hitbox (visual)', delay:1500, category:'Combat'},
+  {id:'trigger', title:'TriggerBot', desc:'Auto tembak (visual)', delay:1700, category:'Combat'},
+  {id:'killaura', title:'Kill Aura', desc:'Damage area (visual)', delay:1900, category:'Combat'},
+  {id:'autoparry', title:'Auto Parry', desc:'Parry otomatis (visual)', delay:1600, category:'Combat'},
+  {id:'antikb', title:'Anti Knockback', desc:'Kurangi knockback (visual)', delay:1500, category:'Combat'},
+
+  // Visual & Utility
+  {id:'esp', title:'ESP Box', desc:'Lihat box pemain', delay:1300, category:'Visual'},
+  {id:'espname', title:'ESP Name', desc:'Tampilkan nama pemain', delay:1200, category:'Visual'},
+  {id:'skeleton', title:'Skeleton ESP', desc:'Garis kerangka (visual)', delay:1400, category:'Visual'},
+  {id:'chams', title:'Chams', desc:'Warna pemain lewat tembok', delay:1400, category:'Visual'},
+  {id:'night', title:'Night Vision', desc:'Tingkatkan visibilitas', delay:1100, category:'Visual'},
+  {id:'fullbright', title:'FullBright', desc:'Terang selalu', delay:1100, category:'Visual'},
+  {id:'tracker', title:'Player Tracker', desc:'Lacak pemain jarak jauh', delay:1500, category:'Visual'},
+  {id:'autofarm', title:'Auto Farm', desc:'Kumpulkan item otomatis', delay:1800, category:'Utility'},
+  {id:'teleporthub', title:'Teleport Hub', desc:'Menu teleport (visual)', delay:1500, category:'Utility'},
+
+  // Misc
+  {id:'antidet', title:'Anti-Detect', desc:'Simulasi aman (visual)', delay:2000, category:'Misc'},
+  {id:'ghost', title:'Ghost Mode', desc:'Hilang sementara (visual)', delay:1600, category:'Misc'}
+];
+
+const PRESETS = {
+  default: ['fly','esp','walkspeed','fullbright'],
+  combat: ['aimbot','hitbox','trigger','antikb'],
+  visual: ['esp','espname','skeleton','chams','fullbright'],
+  farm: ['autofarm','teleporthub','teleport2player']
+};
+
+
+/* ========== DOM refs & state ========== */
+const appMain = document.getElementById('appMain');
+const userInfoCard = document.getElementById('userInfoCard');
+const logoutBtn = document.getElementById('logoutBtn');
+const logoutModal = document.getElementById('logoutModal');
+const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+const categoriesContainer = document.getElementById('categoriesContainer');
+const activityLog = document.getElementById('activityLog');
+const notifEl = document.getElementById('notif');
+const notifTitle = document.getElementById('notifTitle');
+const notifDesc = document.getElementById('notifDesc');
+const notifBar = document.getElementById('notifBar');
+const notifCloseBtn = document.getElementById('notifCloseBtn');
+
+const loginOverlay = document.getElementById('loginOverlay');
+const loginUser = document.getElementById('loginUser');
+const loginPass = document.getElementById('loginPass');
+const loginBtn = document.getElementById('loginBtn');
+const demoBtn = document.getElementById('demoBtn');
+const loginMsg = document.getElementById('loginMsg');
+const loginBar = document.getElementById('loginBar');
+const tabFree = document.getElementById('tabFree');
+const tabPremium = document.getElementById('tabPremium');
+
+// ADMIN KEY DOM REFS
+const adminKeyOverlay = document.getElementById('adminKeyOverlay');
+const closeAdminKeyBtn = document.getElementById('closeAdminKeyBtn');
+const adminKeyInput = document.getElementById('adminKeyInput');
+const submitAdminKeyBtn = document.getElementById('submitAdminKeyBtn');
+const adminKeyMsg = document.getElementById('adminKeyMsg');
+const ADMIN_KEY = 'malaby_admin'; // Kunci Admin (Hardcoded)
+
+// BUG REPORT DOM REFS
+const reportName = document.getElementById('reportName');
+const reportMode = document.getElementById('reportMode');
+const reportProblem = document.getElementById('reportProblem');
+const sendReportBtn = document.getElementById('sendReportBtn');
+const WHATSAPP_NUMBER = '+62819000000000'; 
+
+const whoInfo = document.getElementById('whoInfo');
+const statusIndicator = document.getElementById('statusIndicator');
+const searchInput = document.getElementById('searchInput');
+
+const presetSelect = document.getElementById('presetSelect');
+const enablePresetBtn = document.getElementById('enablePresetBtn');
+const enableAllBtn = document.getElementById('enableAllBtn');
+const enableAllTop = document.getElementById('enableAllTop');
+const viewMode = document.getElementById('viewMode');
+
+const themeSwatches = document.querySelectorAll('.theme-swatch');
+const customColorPicker = document.getElementById('customColorPicker');
+const currentThemeName = document.getElementById('currentThemeName');
+
+const clearLogBtn = document.getElementById('clearLogBtn');
+
+// System Monitor DOM
+const cpuUsage = document.getElementById('cpuUsage');
+const gpuUsage = document.getElementById('gpuUsage');
+const memUsage = document.getElementById('memUsage');
+const temp = document.getElementById('temp');
+const systemLoadBar = document.getElementById('systemLoadBar');
+
+// System Load State
+let currentCpuLoad = 10; 
+let currentGpuLoad = 15;
+let currentMemLoad = 120; // in MB
+
+// System Load Constants per Feature (sesuai permintaan)
+const CPU_INC = 0.2; // Tambah 0.2% per cheat
+const GPU_INC = 1.0; // Tambah 1.0% per cheat
+const MEM_INC = 0.5; // Tambah 0.5MB per cheat
+
+let busy = false;
+let isPresetRunning = false;
+const activeSet = new Set();
+let mode = 'Freemium';
+let themeColor = localStorage.getItem('malaby_theme') || '#7c4dff';
+
+/* ========== Helpers ========== */
+function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+function appendLog(txt){
+  const el = document.createElement('div'); el.textContent = `[${new Date().toLocaleTimeString()}] ${txt}`;
+  activityLog.prepend(el);
+  while(activityLog.childElementCount > 220) activityLog.removeChild(activityLog.lastChild);
+}
+function setStatus(text, kind){
+  statusIndicator.textContent = text;
+  if(kind === 'busy'){ statusIndicator.style.background = 'linear-gradient(90deg,#ffd86b,#ff7ab6)'; statusIndicator.style.color = '#081018'; }
+  else if(kind === 'ok'){ statusIndicator.style.background = 'linear-gradient(90deg,#2dd4bf,#55e6a1)'; statusIndicator.style.color = '#02120a'; }
+  else { statusIndicator.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))'; statusIndicator.style.color = getComputedStyle(document.body).getPropertyValue('--muted'); }
+}
+
+function refreshFeatureButtons() {
+    document.querySelectorAll('.feature-controls').forEach(controls => {
+        const act = controls.querySelector('.activate-btn');
+        const deact = controls.querySelector('.deactivate-btn');
+        const featId = controls.dataset.id;
+        if (activeSet.has(featId)) {
+            act.disabled = true;
+            deact.disabled = false;
+        } else {
+            act.disabled = false;
+            deact.disabled = true;
+        }
+    });
+}
+
+function saveActiveState() {
+    localStorage.setItem('malaby_active', JSON.stringify(Array.from(activeSet)));
+    if (mode === 'Premium') {
+        appendLog('Auto Save (Premium): State fitur disimpan.');
+    }
+}
+
+// Function to update base system load based on active cheats
+function updateSystemLoadFromFeatures() {
+  const activeCount = activeSet.size;
+  // Base Load + (Active Features * Increment)
+  currentCpuLoad = 10 + (activeCount * CPU_INC);
+  currentGpuLoad = 15 + (activeCount * GPU_INC);
+  currentMemLoad = 120 + (activeCount * MEM_INC);
+  appendLog(`System Load Updated: ${activeCount} active cheats.`);
+}
+
+
+/* notif with progress */
+async function showNotification(title, desc, duration=1200, status='Activating'){
+  notifTitle.textContent = title;
+  notifDesc.textContent = desc;
+  notifBar.style.width = '0%';
+  notifEl.style.display = 'block';
+
+  // Set bar color based on status
+  if (status === 'Deactivating') {
+    notifBar.style.background = 'linear-gradient(90deg, #ff7ab6, #ff6b7a)';
+    duration = 400; 
+  } else if (status === 'Warn') {
+    notifBar.style.background = 'linear-gradient(90deg, #ffd86b, #ff7ab6)';
+    notifTitle.style.color = 'var(--warn)';
+    duration = duration || 1500;
+  } else {
+    notifBar.style.background = 'linear-gradient(90deg,var(--accent),var(--accent2))';
+    notifTitle.style.color = 'var(--accent)';
+  }
+
+  const steps = 60;
+  for(let i=0;i<=steps;i++){
+    notifBar.style.width = `${Math.round((i/steps)*100)}%`;
+    await wait(duration/steps);
+  }
+  
+  if (status !== 'Warn') {
+    notifDesc.textContent = (status === 'Deactivating') ? 'Non-active ✓' : 'Success ✓';
+    tone(status === 'Deactivating' ? 440 : 980, 0.06);
+    await wait(280);
+    notifEl.style.display = 'none';
+  } else {
+    tone(320, 0.06);
+  }
+}
+
+// Notif close button handler
+notifCloseBtn.addEventListener('click', ()=> notifEl.style.display = 'none');
+
+
+/* ========== Handlers for New Button-Based Activation (SINGLE CLICK) ========== */
+async function handleFeatureActivation(id, activateBtn, deactivateBtn) {
+  if (busy || activateBtn.disabled || isPresetRunning) return;
+  const feat = FEATURES.find(f => f.id === id);
+
+  document.querySelectorAll('.btn-mini').forEach(b => b.disabled = true);
+  busy = true;
+
+  activateBtn.disabled = true; 
+  
+  setStatus(`Activating ${feat.title}`, 'busy');
+  appendLog(`Activating ${feat.title} (delay ${feat.delay}ms)`);
+  tone(720, 0.06);
+  
+  await showNotification(`Activating ${feat.title}`, 'Initializing...', feat.delay, 'Activating');
+
+  activeSet.add(id);
+  updateSystemLoadFromFeatures(); // Update load
+  
+  appendLog(`${feat.title} → ACTIVE`);
+  
+  if (!isPresetRunning) {
+      refreshFeatureButtons();
+      busy = false;
+      setStatus('Idle', 'ok');
+  }
+
+  saveActiveState();
+}
+
+async function handleFeatureDeactivation(id, activateBtn, deactivateBtn) {
+    if (busy || deactivateBtn.disabled || isPresetRunning) return;
+    const feat = FEATURES.find(f => f.id === id);
+
+    document.querySelectorAll('.btn-mini').forEach(b => b.disabled = true);
+    busy = true;
+
+    deactivateBtn.disabled = true;
+
+    setStatus(`Deactivating ${feat.title}`, 'busy');
+    appendLog(`Deactivating ${feat.title}`);
+    
+    await showNotification(`Deactivating ${feat.title}`, 'Cleaning up...', 400, 'Deactivating');
+
+    activeSet.delete(id);
+    updateSystemLoadFromFeatures(); // Update load
+    
+    appendLog(`${feat.title} → OFF`);
+    
+    if (!isPresetRunning) {
+        refreshFeatureButtons();
+        busy = false;
+        setStatus('Idle');
+    }
+    
+    saveActiveState();
+}
+
+/* ========== Build UI by category (tabbed) ========== */
+function buildUI(){
+  categoriesContainer.innerHTML = '';
+  const cats = {};
+  const allowedFreemium = new Set(['infjump','walkspeed','esp','espname','night','fullbright','teleporthub']);
+  const list = (mode === 'Freemium') ? FEATURES.filter(f => allowedFreemium.has(f.id)) : FEATURES.slice();
+
+  list.forEach(f => { if(!cats[f.category]) cats[f.category]=[]; cats[f.category].push(f); });
+  // tabs active state handling
+  for(const cat of Object.keys(cats)){
+    const header = document.createElement('div'); header.className = 'category-row';
+    header.innerHTML = `<div class="category-title">${cat}</div><div class="kv">${cats[cat].length} items</div>`;
+    categoriesContainer.appendChild(header);
+
+    const grid = document.createElement('div'); grid.className = 'features-grid';
+    for(const feat of cats[cat]){
+      const card = document.createElement('div'); card.className = 'feature-card'; card.dataset.category = feat.category;
+      const left = document.createElement('div'); left.className = 'feature-left';
+      left.innerHTML = `<div class="feature-title">${feat.title}</div><div class="feature-desc">${feat.desc}</div>`;
+      
+      const controls = document.createElement('div');
+      controls.className = 'feature-controls';
+      controls.dataset.id = feat.id;
+
+      const activateBtn = document.createElement('button');
+      activateBtn.className = 'btn btn-mini activate-btn';
+      activateBtn.textContent = 'Active';
+      activateBtn.dataset.id = feat.id;
+      
+      const deactivateBtn = document.createElement('button');
+      deactivateBtn.className = 'btn btn-mini secondary deactivate-btn';
+      deactivateBtn.textContent = 'Non-active';
+      deactivateBtn.dataset.id = feat.id;
+      
+      // Initial State
+      if(activeSet.has(feat.id)){
+        activateBtn.disabled = true;
+        deactivateBtn.disabled = false;
+      } else {
+        activateBtn.disabled = false;
+        deactivateBtn.disabled = true;
+      }
+      
+      // Event listeners
+      activateBtn.addEventListener('click', () => handleFeatureActivation(feat.id, activateBtn, deactivateBtn));
+      deactivateBtn.addEventListener('click', () => handleFeatureDeactivation(feat.id, activateBtn, deactivateBtn));
+
+      controls.appendChild(activateBtn);
+      controls.appendChild(deactivateBtn);
+      
+      card.appendChild(left); 
+      card.appendChild(controls);
+      grid.appendChild(card);
+    }
+    categoriesContainer.appendChild(grid);
+  }
+  applyViewMode();
+  appendLog(`UI built (${mode})`);
+  startSystemMonitor();
+}
+
+/* Apply view mode: show only current tab or all */
+function applyViewMode(){
+  const modeVal = viewMode.value;
+  const activeTab = document.querySelector('.tab.active')?.dataset.tab || 'Movement';
+  document.querySelectorAll('.feature-card').forEach(card=>{
+    const category = card.dataset.category;
+    const isVisibleBySearch = card.style.display !== 'none';
+    
+    if(modeVal === 'all'){
+      card.style.display = isVisibleBySearch ? 'flex' : 'none';
+    }
+    else {
+      card.style.display = (category === activeTab && isVisibleBySearch) ? 'flex' : 'none';
+    }
+  });
+}
+
+/* tabs click */
+document.getElementById('tabsRow').addEventListener('click', (e)=>{
+  const tab = e.target.closest('.tab');
+  if(!tab) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  applyViewMode();
+});
+
+/* ========== Search filter ========== */
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim().toLowerCase();
+  document.querySelectorAll('.feature-card').forEach(card=>{
+    const t = card.querySelector('.feature-title').textContent.toLowerCase();
+    const d = card.querySelector('.feature-desc').textContent.toLowerCase();
+    
+    const matchesSearch = (!q || t.includes(q) || d.includes(q));
+    
+    const modeVal = viewMode.value;
+    const activeTab = document.querySelector('.tab.active')?.dataset.tab || 'Movement';
+    const matchesTab = (modeVal === 'all' || card.dataset.category === activeTab);
+
+    card.style.display = (matchesSearch && matchesTab) ? 'flex' : 'none';
+  });
+});
+
+/* ========== Bug Report via WhatsApp Logic ========== */
+sendReportBtn.addEventListener('click', () => {
+    const name = reportName.value.trim() || 'Unknown User';
+    const modeVal = reportMode.value.trim() || 'Not Specified';
+    const problem = reportProblem.value.trim();
+
+    if (!problem) {
+        alert('Harap jelaskan masalah/bug Anda.');
+        return;
+    }
+
+    const message = `*BUG REPORT MALABY EXPLOID v14*\n\n*Nama:* ${name}\n*Mode:* ${modeVal}\n*Masalah:* ${problem}\n\n[Auto Generated Report]`;
+    const waUrl = `https://wa.me/${WHATSAPP_NUMBER.replace(/[^\d]/g, '')}?text=${encodeURIComponent(message)}`;
+
+    window.open(waUrl, '_blank');
+    
+    appendLog(`Bug Report Sent to WhatsApp (User: ${name})`);
+    reportProblem.value = ''; // Clear problem field after sending
+    // The name and mode fields are kept for user convenience if they send multiple reports
+    tone(980, 0.06);
+});
+
+
+/* ========== Preset logic & Enable All (top & left) ========== */
+enablePresetBtn.addEventListener('click', ()=> runPreset(presetSelect.value));
+enableAllBtn.addEventListener('click', ()=> enableAllSequence());
+enableAllTop.addEventListener('click', ()=> enableAllSequence());
+
+async function enableAllSequence(){
+  if (busy || isPresetRunning) return;
+  
+  isPresetRunning = true;
+  document.querySelectorAll('.btn-mini').forEach(b => b.disabled = true);
+  busy = true;
+  
+  appendLog('Enable All Preset started');
+  setStatus('Enabling all...', 'busy');
+  tone(600,0.06);
+  await showNotification('Enabling All Preset', 'Applying all visible cheats...', 900, 'Activating');
+  
+  const visibleCards = Array.from(document.querySelectorAll('.feature-card'))
+    .filter(c => c.style.display !== 'none');
+    
+  for(const card of visibleCards){
+    const activateBtn = card.querySelector('.activate-btn');
+    
+    if(!activateBtn || activateBtn.disabled) continue; 
+    
+    const id = activateBtn.dataset.id;
+    const feat = FEATURES.find(f => f.id === id);
+    const d = feat ? feat.delay : 1200;
+
+    activateBtn.disabled = true;
+    
+    setStatus(`Activating ${feat.title}`, 'busy');
+    appendLog(`Activating ${feat.title} (delay ${d}ms)`);
+
+    await showNotification(`Activating ${feat.title}`, 'Initializing...', d, 'Activating');
+
+    activeSet.add(id);
+    updateSystemLoadFromFeatures(); // Update load
+    appendLog(`${feat.title} → ACTIVE`);
+  }
+  
+  isPresetRunning = false;
+  refreshFeatureButtons();
+  busy = false;
+  saveActiveState();
+
+  tone(1100,0.08);
+  await showNotification('Preset Loaded Successfully', 'All presets activated', 900, 'Activating');
+  setStatus('Idle', 'ok');
+  appendLog('Enable All Preset finished');
+}
+
+async function runPreset(name){
+  if (busy || isPresetRunning) return;
+
+  const list = PRESETS[name] || [];
+  
+  isPresetRunning = true;
+  document.querySelectorAll('.btn-mini').forEach(b => b.disabled = true);
+  busy = true;
+
+  appendLog(`Running preset: ${name}`);
+  setStatus(`Running preset: ${name}`, 'busy');
+  
+  for(const id of list){
+    const controls = document.querySelector(`.feature-controls[data-id="${id}"]`);
+    if(!controls) continue;
+    
+    const activateBtn = controls.querySelector('.activate-btn');
+    if(!activateBtn || activateBtn.disabled) continue;
+    
+    const feat = FEATURES.find(f => f.id === id);
+    const d = feat ? feat.delay : 1200;
+    
+    activateBtn.disabled = true;
+    
+    setStatus(`Activating ${feat.title}`, 'busy');
+    appendLog(`Activating ${feat.title} (delay ${d}ms)`);
+    
+    await showNotification(`Activating ${feat.title}`, 'Initializing...', d, 'Activating');
+    
+    activeSet.add(id);
+    updateSystemLoadFromFeatures(); // Update load
+    appendLog(`${feat.title} → ACTIVE`);
+  }
+  
+  isPresetRunning = false;
+  refreshFeatureButtons();
+  busy = false;
+  saveActiveState();
+
+  tone(1100,0.06);
+  await showNotification('Preset Loaded Successfully', `Preset ${name} activated`, 900, 'Activating');
+  setStatus('Idle','ok');
+  appendLog(`Preset ${name} complete`);
+}
+
+/* ========== Theme picker (Custom Color) ========== */
+function applyTheme(hex){
+  document.documentElement.style.setProperty('--accent', hex);
+  const c2 = shade(hex, 0.28);
+  document.documentElement.style.setProperty('--accent2', c2);
+  localStorage.setItem('malaby_theme', hex);
+  
+  // Set name or hex
+  const names = {'#7c4dff':'Ungu','#33d7ff':'Biru','#ff7ab6':'Merah','#39d98a':'Hijau'};
+  currentThemeName.textContent = names[hex.toLowerCase()] || hex.toUpperCase();
+  customColorPicker.value = hex;
+}
+
+themeSwatches.forEach(s => s.addEventListener('click', ()=> applyTheme(s.dataset.color)));
+
+customColorPicker.addEventListener('input', (e) => {
+    applyTheme(e.target.value);
+});
+
+
+function shade(hex, amt){
+  const c = hex.replace('#','');
+  const r = Math.round( parseInt(c.substr(0,2),16) + (255 - parseInt(c.substr(0,2),16)) * amt );
+  const g = Math.round( parseInt(c.substr(2,2),16) + (255 - parseInt(c.substr(2,2),16)) * amt );
+  const b = Math.round( parseInt(c.substr(4,2),16) + (255 - parseInt(c.substr(4,2),16)) * amt );
+  return '#'+ [r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+/* ========== Login: Freemium vs Premium behavior ========== */
+tabFree.addEventListener('click', ()=>{ mode = 'Freemium'; tabFree.classList.add('active'); tabPremium.classList.remove('active'); loginMsg.textContent='Masukkan Nama & Password (bebas) untuk mode Freemium.'; loginMsg.style.color = 'var(--muted)'; });
+tabPremium.addEventListener('click', ()=>{ mode = 'Premium'; tabPremium.classList.add('active'); tabFree.classList.remove('active'); loginMsg.textContent='Gunakan akun Premium Anda.'; loginMsg.style.color = 'var(--muted)'; });
+
+loginBtn.addEventListener('click', async ()=>{
+  const u = (loginUser.value || '').trim() || 'Malaby';
+  const p = (loginPass.value || '').trim() || '';
+  if(mode === 'Premium' && (u !== 'Malaby' || p !== 'malabyganteng')){
+    loginMsg.textContent = 'Username atau password premium salah!';
+    loginMsg.style.color = 'var(--danger)';
+    tone(320,0.06);
+    loginUser.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:240});
+    return;
+  }
+  // success: decrypt animation
+  loginMsg.textContent = 'Authenticating...'; loginMsg.style.color = '#ffd8ff';
+  loginBar.style.width = '0%';
+  loginBtn.disabled = true;
+  demoBtn.disabled = true;
+  await wait(500);
+  loginMsg.textContent = 'Decrypting key...';
+  let pval = 0;
+  while(pval < 100){
+    await wait(12 + Math.random()*26);
+    pval += Math.random()*6 + 2;
+    if(pval>100) pval=100;
+    loginBar.style.width = pval + '%';
+  }
+  await wait(200);
+  
+  localStorage.setItem('malaby_user', u);
+  localStorage.setItem('malaby_mode', mode);
+  tone(880,0.06);
+  loginMsg.textContent = `Login Success! Welcome, ${u}.`; loginMsg.style.color = 'var(--ok)';
+  loginBtn.disabled = false;
+  demoBtn.disabled = false;
+  loginBar.style.width = '100%';
+  await wait(500);
+  
+  loginOverlay.style.display = 'none';
+  appMain.style.display = 'flex'; // Show main app
+  userInfoCard.style.display = 'block'; // Show user info card
+  whoInfo.textContent = `User: ${u} • Mode: ${mode}`;
+  appendLog(`Login success: ${u} (${mode})`);
+  buildUI();
+  setStatus(`Welcome, ${u}`, 'ok');
+});
+
+/* demo button: MODIFIED TO SHOW ADMIN KEY POPUP */
+demoBtn.addEventListener('click', async ()=>{ 
+  if (busy) return;
+  adminKeyInput.value = ''; // Clear input
+  adminKeyMsg.textContent = 'Masukkan Kunci Akses Admin di atas.';
+  adminKeyMsg.style.color = 'var(--muted)';
+  submitAdminKeyBtn.disabled = false;
+  adminKeyOverlay.style.display = 'flex'; // Show the new pop-up
+});
+
+/* NEW ADMIN KEY LOGIC */
+function runDemoLogin() {
+    // Logic to proceed after successful key validation
+    mode = 'Freemium';
+    localStorage.setItem('malaby_user', 'Demo');
+    localStorage.setItem('malaby_mode', 'Freemium');
+    
+    adminKeyOverlay.style.display = 'none'; // Close the pop-up
+
+    loginOverlay.style.display = 'none';
+    appMain.style.display = 'flex'; // Show main app
+    userInfoCard.style.display = 'block'; // Show user info card
+    whoInfo.textContent = `User: Demo • Mode: Freemium`;
+    buildUI();
+    setStatus('Demo mode', 'ok');
+    appendLog('Entered demo mode');
+    tone(880, 0.06); // Success tone
+    
+    // Auto-hide the persistent notif if it was showing, in case user didn't close it
+    setTimeout(()=>notifEl.style.display = 'none', 3000); 
+}
+
+submitAdminKeyBtn.addEventListener('click', async () => {
+    const inputKey = adminKeyInput.value.trim();
+    if (inputKey === ADMIN_KEY) {
+        adminKeyMsg.textContent = 'Kunci Valid. Mengakses Mode Demo...';
+        adminKeyMsg.style.color = 'var(--ok)';
+        submitAdminKeyBtn.disabled = true;
+        await wait(600);
+        runDemoLogin();
+    } else {
+        adminKeyMsg.textContent = 'Kunci Admin salah! Akses ditolak.';
+        adminKeyMsg.style.color = 'var(--danger)';
+        adminKeyInput.animate([{transform:'translateX(0)'},{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],{duration:140});
+        tone(320, 0.06);
+    }
+});
+
+// Close button logic (X)
+closeAdminKeyBtn.addEventListener('click', () => {
+    adminKeyOverlay.style.display = 'none';
+});
+/* END NEW ADMIN KEY LOGIC */
+
+/* ========== Logout Feature (Dengan Modal Konfirmasi) ========== */
+function showLogoutModal(){
+    logoutModal.style.display = 'flex';
+    tone(550, 0.05); // Play a soft tone
+}
+
+function handleLogoutConfirmed(){
+  // Actual logout logic
+  localStorage.removeItem('malaby_user');
+  localStorage.removeItem('malaby_mode');
+  localStorage.removeItem('malaby_active'); 
+  activeSet.clear(); 
+
+  // Reset System Load
+  currentCpuLoad = 10;
+  currentGpuLoad = 15;
+  currentMemLoad = 120;
+  
+  logoutModal.style.display = 'none'; // Hide modal
+  appMain.style.display = 'none'; // Hide main app
+  loginOverlay.style.display = 'flex'; // Show login overlay
+  userInfoCard.style.display = 'none'; // Hide user info card
+  loginBar.style.width = '0%'; // Reset login bar
+  loginMsg.textContent = 'Masukkan Nama & Password (bebas) untuk mode Freemium.';
+  loginMsg.style.color = 'var(--muted)';
+  loginUser.value = ''; // Clear inputs
+  loginPass.value = '';
+  
+  setStatus('Logged out');
+  appendLog('Logout successful. Awaiting login.');
+}
+
+logoutBtn.addEventListener('click', showLogoutModal);
+cancelLogoutBtn.addEventListener('click', ()=> logoutModal.style.display = 'none');
+confirmLogoutBtn.addEventListener('click', handleLogoutConfirmed);
+
+
+// Clear Log feature
+clearLogBtn.addEventListener('click', ()=>{
+  activityLog.innerHTML = '';
+  appendLog('Activity Log cleared.');
+  tone(400, 0.04);
+});
+
+// System Monitor Simulation based on active cheats
+function startSystemMonitor() {
+  // Initial load update from saved state
+  updateSystemLoadFromFeatures(); 
+
+  const updateSystem = () => {
+    // Random fluctuation around the current state (to keep it "live")
+    const cpuFluctuation = Math.random() * 0.5 - 0.25; // -0.25 to +0.25
+    const gpuFluctuation = Math.random() * 1.5 - 0.75; // -0.75 to +0.75
+    const memFluctuation = Math.random() * 1 - 0.5; // -0.5MB to +0.5MB
+    
+    // Calculate final displayed values, keeping them within bounds
+    const cpu = Math.max(2, Math.min(99, currentCpuLoad + cpuFluctuation));
+    const gpu = Math.max(5, Math.min(99, currentGpuLoad + gpuFluctuation));
+    const mem = Math.max(120, Math.min(800, currentMemLoad + memFluctuation));
+    const tempVal = Math.max(45, Math.min(75, 45 + (cpu+gpu)/40)); // Temperature based on average load
+    const overallLoad = (cpu + gpu) / 2;
+
+    cpuUsage.textContent = `${cpu.toFixed(1)}%`;
+    gpuUsage.textContent = `${gpu.toFixed(1)}%`;
+    memUsage.textContent = `${mem.toFixed(0)}MB`;
+    temp.textContent = `${tempVal.toFixed(1)}°C`;
+    systemLoadBar.style.width = `${Math.min(100, overallLoad)}%`;
+    
+    // Change bar color based on load
+    if (overallLoad > 60) {
+        systemLoadBar.style.background = 'linear-gradient(90deg, var(--danger), #ff9999)';
+    } else if (overallLoad > 30) {
+        systemLoadBar.style.background = 'linear-gradient(90deg, var(--warn), #ffc84d)';
+    } else {
+        systemLoadBar.style.background = 'linear-gradient(90deg, var(--accent), var(--accent2))';
+    }
+
+    requestAnimationFrame(updateSystem);
+  };
+  updateSystem();
+}
+
+
+/* ========== Init ========== */
+(function init(){
+  applyTheme(themeColor);
+  
+  const su = localStorage.getItem('malaby_user'); 
+  const savedMode = localStorage.getItem('malaby_mode'); 
+  
+  if(savedMode){ 
+    mode = savedMode; 
+    if(mode==='Premium'){ 
+      tabPremium.classList.add('active'); tabFree.classList.remove('active'); 
+      loginMsg.textContent='Gunakan akun Premium Anda.';
+    } else { 
+      mode = 'Freemium';
+      tabFree.classList.add('active'); tabPremium.classList.remove('active'); 
+      loginMsg.textContent='Masukkan Nama & Password (bebas) untuk mode Freemium.';
+    } 
+  }
+  
+  // Restore active toggles and calculate initial custom load
+  const savedActive = JSON.parse(localStorage.getItem('malaby_active') || '[]');
+  savedActive.forEach(id => activeSet.add(id));
+  updateSystemLoadFromFeatures(); 
+  
+  // Check if user is already logged in
+  if (su && savedMode) {
+    loginOverlay.style.display = 'none';
+    appMain.style.display = 'flex';
+    userInfoCard.style.display = 'block';
+    whoInfo.textContent = `User: ${su} • Mode: ${mode}`;
+    buildUI();
+    setStatus(`Welcome back, ${su}`, 'ok');
+  } else {
+    loginOverlay.style.display = 'flex';
+    appMain.style.display = 'none';
+    userInfoCard.style.display = 'none';
+  }
+
+  // wire preset top button to left too
+  viewMode.addEventListener('change', applyViewMode);
+  appendLog('Malaby Exploid v14 ready — login or Demo');
+})();
+</script>
+</body>
+</html>
